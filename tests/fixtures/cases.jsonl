@@ -1,0 +1,20 @@
+{"desc":"订单服务CPU使用率95%+，响应时间从200ms飙升到3000ms，影响全国用户","expected":"故障处置"}
+{"desc":"Redis 主节点宕机，连接重连失败，大量请求报 connection refused","expected":"故障处置"}
+{"desc":"海淀工厂 MES 系统 3 分钟未上报数据，产线看板一直转圈","expected":"故障处置"}
+{"desc":"刚收到 PagerDuty 告警：payment-gateway 5xx 率从 0.01% 飙到 12%","expected":"故障处置"}
+{"desc":"DB连接池爆了，HikariPool 一直报 timeout，请赶紧定位","expected":"故障处置"}
+{"desc":"某 SaaS 公司 CTO 有预算 200w 想年底落地 AI 平台，正在对比 3 家竞品","expected":"销售推进"}
+{"desc":"客户王总今天朋友圈发了要做数字化升级，明天去拜访聊聊他们的采购意向","expected":"销售推进"}
+{"desc":"这条线索是某制造业 COO，采购周期 2 个月，我们和 SAP 都入围了，想办法胜出","expected":"销售推进"}
+{"desc":"把这份 Java 高级工程师简历筛一下，候选人 6 年经验做过支付系统","expected":"招聘流程"}
+{"desc":"帮我安排 3 位候选人下周二下午 14:00 的终面，面试官是张总","expected":"招聘流程"}
+{"desc":"这个算法岗 offer 薪资对齐竞品后需不需要调？候选人有字节、腾讯两家 offer","expected":"招聘流程"}
+{"desc":"采购 100 台 Dell 服务器的申请，供应商 A 报 85w、B 报 82w，请给出比对和建议","expected":"采购审批"}
+{"desc":"这份新供应商的 ISO9001 认证文件你看一下，能不能入围我们的合规名单","expected":"采购审批"}
+{"desc":"季度数据看板转化率下滑 8%，帮我挖一下具体是哪个渠道或环节出的问题","expected":"运营分析"}
+{"desc":"老板要 3 分钟后看上周 DAU/ARPU/留存 的简要报告，帮我拉一下","expected":"运营分析"}
+{"desc":"帮我分析 A/B 实验 exp_1234 为什么第 3 天之后转化差异不显著了","expected":"运营分析"}
+{"desc":"明天的部门例会议程帮我整理一下，要体现 Q2 OKR 进展","expected":"其他"}
+{"desc":"帮我把这个 Python 脚本改成异步版本，顺便加 type hint","expected":"其他"}
+{"desc":"订单支付回调失败率激增 30%，用户反馈下单后一直显示处理中","expected":"故障处置"}
+{"desc":"新增一个销售线索：某央企数字化部想采购我们的 Agent 平台","expected":"销售推进"}
