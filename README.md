@@ -76,9 +76,13 @@ cp .env.example .env   # 填上 LLM_API_KEY
 
 ```bash
 baf init-tables --mock   # 在 ~/.baf/mock/ 下创建 5 张 JSON "表"
-baf seed --mock          # 种入内置技能库（10 条）+ 模板（1 条）
+baf seed --mock          # 种入内置技能库（19 条）+ 模板（4 条，覆盖 4 个场景）
 baf run-demo --mock      # 跑一条默认的 P1 故障，控制台实时输出每个 Agent 的工作
+baf demo-all --mock      # 一次跑完 4 个场景：故障 / 销售 / 招聘 / 采购
 baf tables --mock        # 一览 5 张表
+baf stats --mock         # 场景 / 状态 / Blueprint 使用率聚合
+baf trace <CASE_ID> --mock          # 单 case 的完整 Agent 时间线
+baf export-report --mock -o out.md  # 导出 Markdown 报告（评委/分享友好）
 ```
 
 期望看到的控制台输出：
@@ -127,14 +131,18 @@ baf seed                 # 把 10 条内置技能写入
 baf run-demo             # 打开多维表格页面能看到 Cases/AgentRuns 实时新增行
 ```
 
-### 5. 回归测试（Scene Router 准确率）
+### 5. 回归测试
 
 ```bash
-pytest tests/test_scene_router.py -s
-# Scene Router accuracy: 100.00%  (20/20)
+pytest -q
+# 7 passed —— 含 Scene Router 20 样本回归（100%）+ MockBackend CRUD + Orchestrator 端到端（FakeLLM 离线）
 ```
 
-PRD §10.1 要求 ≥85%，当前实测 **100% (20/20)**。
+| 测试 | 校验内容 |
+|---|---|
+| `test_scene_router.py` | 20 fixture 场景识别准确率（PRD §10.1 要求 ≥85%，实测 100%）|
+| `test_mock_backend.py` | StorageBackend CRUD、列表过滤（含多选字段）、seed 幂等 |
+| `test_orchestrator_e2e.py` | 用 FakeLLM 跑完整流水线，校验 Blueprint EWMA、SOP 沉淀、Agent Runs 审计 |
 
 ## 目录
 
@@ -169,8 +177,10 @@ bitable-agent-fabric/
 - **技能驱动** — 所有能力都在 Skill Catalog 表里，有权限、风险、验收标准字段，可治理、可扩展
 - **全链路审计** — 每个 Agent 的每次调用都在 Agent Runs 表留痕，评委能直接在多维表格里看到"虚拟组织的工作时间线"
 - **自沉淀** — 验证通过的 case 自动写入 Memory/SOP 表，下次同类问题 Composer 会优先复用
-- **跨场景复用** — 同一套底座，只要补技能和模板，新场景零改代码（`baf run "<销售/招聘/采购 任意描述>"` 就能工作）
-- **离线可跑** — MockBackend 保证评委在没有飞书账号的环境下也能看到全流程
+- **自演化** — Blueprint 的 `success_rate` 用 EWMA(α=0.3) 在每次 case 关闭后滚动更新，"好用的模板"越用越靠前
+- **跨场景复用** — 同一套底座，4 个场景都预置了 Blueprint；新场景只需补技能数据零改代码（`baf run "<销售/招聘/采购 任意描述>"` 就能工作）
+- **可视化报告** — `baf trace`/`stats`/`export-report` 三个命令分别给单 case / 聚合 / Markdown 导出三种角度
+- **离线可跑** — MockBackend + 端到端 FakeLLM 测试，保证评委和 CI 在无任何外部依赖时也能验证
 
 ## 已知限制 / 下一步
 
@@ -178,7 +188,7 @@ bitable-agent-fabric/
 - Fix Agent 的飞书卡片审批当前走 mock，V1.1 要接入真的 `send_feishu_card`
 - Root Cause 的 `read_logs` / `query_monitoring` 是固定样例，企业对接时替换为真实 APM/日志 SDK
 - 当前 Agent 串行执行，V1.1 把不依赖结果的 Agent 并行化（e.g. 复杂销售场景里 Research / Risk / Proposal 可以并发）
-- 五个场景的 Blueprint V1 只预置了故障处置一个，其他场景走 LLM 首次设计后自沉淀
+- Blueprint 当前 4 个（故障/销售/招聘/采购），运营分析等场景走 LLM 首次设计后自沉淀
 
 ---
 

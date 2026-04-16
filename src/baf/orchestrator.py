@@ -190,6 +190,9 @@ class Orchestrator:
                     TableName.CASES, record_id, {"sop_ref": sop_id}
                 )
 
+        # 7) update the blueprint's running success_rate (EWMA)
+        self._update_blueprint_success(ctx, passed)
+
         console.rule(f"[bold green]Case {case_id} → {'PASSED' if passed else 'FAILED'}")
         return OrchestrationResult(
             case_id=case_id,
@@ -234,6 +237,27 @@ class Orchestrator:
         t.add_column(style="white")
         t.add_row(agent.display_name, _pretty(output))
         console.print(t)
+
+    def _update_blueprint_success(self, ctx: RunContext, passed: bool) -> None:
+        """Roll the blueprint's success_rate forward (EWMA, alpha=0.3)."""
+        bp_record_id = ctx.blackboard.get("blueprint_record_id")
+        if not bp_record_id:
+            return
+        try:
+            bp = self.storage.get_record(TableName.AGENT_BLUEPRINTS, bp_record_id)
+            if not bp:
+                return
+            prev = float(bp.get("success_rate") or 0.0)
+            sample = 1.0 if passed else 0.0
+            alpha = 0.3
+            new_rate = round(alpha * sample + (1 - alpha) * prev, 3)
+            self.storage.update_record(
+                TableName.AGENT_BLUEPRINTS,
+                bp_record_id,
+                {"success_rate": new_rate, "last_used_at": time.time()},
+            )
+        except Exception as e:
+            console.print(f"[yellow]blueprint success_rate 更新失败: {e}[/yellow]")
 
     def _sink_sop(self, ctx: RunContext) -> str | None:
         """Promote a successful case into an SOP row for future reuse."""

@@ -1,13 +1,12 @@
 """Built-in skill catalog + agent blueprints (seed data).
 
-Focused on 故障处置 for the MVP; a few skills from other scenes are
-included so Skill Retriever's cross-scene filtering has something to
-filter out.
+故障处置 是 MVP 主场景，技能/模板最完整；其他场景各预置 2-4 条技能 + 1 个
+Blueprint，让"跨场景动态编组"在 demo 里就能直观看到。
 """
 from __future__ import annotations
 
 BUILTIN_SKILLS: list[dict] = [
-    # --- 故障处置 ---
+    # ====== 故障处置 ======
     {
         "skill_id": "SKILL_001",
         "skill_name": "告警分级",
@@ -92,15 +91,15 @@ BUILTIN_SKILLS: list[dict] = [
         "acceptance_criteria": "独立于执行者做比对，给出结构化评估",
         "description": "独立验证任务结果是否达到预期",
     },
-    # --- 销售推进 ---
+    # ====== 销售推进 ======
     {
         "skill_id": "SKILL_101",
         "skill_name": "客户画像分析",
         "applicable_scenes": ["销售推进"],
         "permission_level": "普通",
         "risk_level": "低",
-        "input_requirements": "客户名称/行业/规模",
-        "output_format": "画像报告",
+        "input_requirements": "客户名称/行业/规模/历史接触",
+        "output_format": "画像报告（行业、规模、决策链、痛点）",
         "required_tools": [],
         "acceptance_criteria": "覆盖行业、规模、采购偏好、决策链",
         "description": "对客户做背景和需求画像",
@@ -117,7 +116,31 @@ BUILTIN_SKILLS: list[dict] = [
         "acceptance_criteria": "输出结构化评分和可执行推进建议",
         "description": "按 BANT 评估商机价值",
     },
-    # --- 招聘 ---
+    {
+        "skill_id": "SKILL_103",
+        "skill_name": "销售跟进策略",
+        "applicable_scenes": ["销售推进"],
+        "permission_level": "普通",
+        "risk_level": "低",
+        "input_requirements": "客户画像 + 商机评分",
+        "output_format": "跟进时间线 + 触达方式 + 关键话术",
+        "required_tools": [],
+        "acceptance_criteria": "给出 3-5 步可执行动作，包含触达渠道和关键节点",
+        "description": "结合画像和评分输出可执行跟进方案",
+    },
+    {
+        "skill_id": "SKILL_104",
+        "skill_name": "竞品对比",
+        "applicable_scenes": ["销售推进"],
+        "permission_level": "普通",
+        "risk_level": "低",
+        "input_requirements": "目标方案 + 主流竞品",
+        "output_format": "对比矩阵 + 我方差异化卖点",
+        "required_tools": [],
+        "acceptance_criteria": "覆盖至少 3 个评估维度，差异点有事实依据",
+        "description": "对比竞品方案并提炼差异化卖点",
+    },
+    # ====== 招聘流程 ======
     {
         "skill_id": "SKILL_201",
         "skill_name": "简历筛选",
@@ -130,11 +153,98 @@ BUILTIN_SKILLS: list[dict] = [
         "acceptance_criteria": "给出分数并列出匹配/不匹配项",
         "description": "按 JD 给简历打分",
     },
+    {
+        "skill_id": "SKILL_202",
+        "skill_name": "面试问题生成",
+        "applicable_scenes": ["招聘流程"],
+        "permission_level": "普通",
+        "risk_level": "低",
+        "input_requirements": "JD + 候选人亮点/疑点",
+        "output_format": "5-10 个分层面试题 + 期望答案",
+        "required_tools": [],
+        "acceptance_criteria": "覆盖技术、协作、文化匹配三类，每题都有评估锚点",
+        "description": "根据 JD 和简历亮点生成针对性面试题",
+    },
+    {
+        "skill_id": "SKILL_203",
+        "skill_name": "Offer 评估",
+        "applicable_scenes": ["招聘流程"],
+        "permission_level": "高级",
+        "risk_level": "中",
+        "input_requirements": "候选人现状 + 内部薪酬带 + 市场分位",
+        "output_format": "推荐 offer 区间 + 谈判要点",
+        "required_tools": [],
+        "acceptance_criteria": "结合内部带宽和市场分位给出区间，附风险提示",
+        "description": "给出 offer 谈判建议",
+    },
+    # ====== 采购审批 ======
+    {
+        "skill_id": "SKILL_301",
+        "skill_name": "采购需求分析",
+        "applicable_scenes": ["采购审批"],
+        "permission_level": "普通",
+        "risk_level": "低",
+        "input_requirements": "采购品类 + 数量 + 预算",
+        "output_format": "需求摘要 + 必要性评估",
+        "required_tools": [],
+        "acceptance_criteria": "明确必要性、紧急度、预算合理性",
+        "description": "梳理采购需求并评估必要性",
+    },
+    {
+        "skill_id": "SKILL_302",
+        "skill_name": "供应商比价",
+        "applicable_scenes": ["采购审批"],
+        "permission_level": "普通",
+        "risk_level": "低",
+        "input_requirements": "需求 + 候选供应商列表",
+        "output_format": "比价表 + 推荐供应商 + 风险点",
+        "required_tools": [],
+        "acceptance_criteria": "至少 3 家比价、覆盖价格/交期/资质三个维度",
+        "description": "在候选供应商间做横向比价并出推荐",
+    },
+    {
+        "skill_id": "SKILL_303",
+        "skill_name": "合规校验",
+        "applicable_scenes": ["采购审批"],
+        "permission_level": "高级",
+        "risk_level": "中",
+        "input_requirements": "采购方案 + 公司采购规章",
+        "output_format": "合规结论 + 缺漏项",
+        "required_tools": [],
+        "acceptance_criteria": "逐条对照规章，缺漏明确",
+        "description": "校验采购方案是否符合公司规章",
+    },
+    # ====== 运营分析 ======
+    {
+        "skill_id": "SKILL_401",
+        "skill_name": "数据拉取",
+        "applicable_scenes": ["运营分析"],
+        "permission_level": "普通",
+        "risk_level": "低",
+        "input_requirements": "指标定义 + 时间范围",
+        "output_format": "结构化数据表",
+        "required_tools": ["query_metrics"],
+        "acceptance_criteria": "字段清晰、时间口径一致",
+        "description": "按指标定义拉取数据",
+    },
+    {
+        "skill_id": "SKILL_402",
+        "skill_name": "异动归因",
+        "applicable_scenes": ["运营分析"],
+        "permission_level": "高级",
+        "risk_level": "中",
+        "input_requirements": "数据 + 历史基线",
+        "output_format": "异动结论 + 主要驱动因素",
+        "required_tools": [],
+        "acceptance_criteria": "给出主因并附置信度，区分相关 vs 因果",
+        "description": "分析指标异动的主因",
+    },
 ]
 
 
 # 历史成功 Agent 模板 —— Composer 优先复用
 BUILTIN_BLUEPRINTS: list[dict] = [
+    # 故障处置：经典 IC + RC + FX + VF
     {
         "blueprint_id": "BP_INCIDENT_V1",
         "scene_type": "故障处置",
@@ -167,5 +277,107 @@ BUILTIN_BLUEPRINTS: list[dict] = [
         "success_rate": 0.92,
         "usage_count": 0,
         "desc": "经典故障处置四角色：IC + RC + FX + VF",
-    }
+    },
+    # 销售推进：客户画像 → 商机评估 → 跟进策略 → 验收
+    {
+        "blueprint_id": "BP_SALES_V1",
+        "scene_type": "销售推进",
+        "team_composition": [
+            {
+                "role": "customer_profile",
+                "display_name": "客户画像 Agent",
+                "skills": ["SKILL_101"],
+                "desc": "画客户、产业、决策链画像",
+            },
+            {
+                "role": "opportunity_eval",
+                "display_name": "商机评估 Agent",
+                "skills": ["SKILL_102", "SKILL_104"],
+                "desc": "BANT 评估 + 竞品对比",
+            },
+            {
+                "role": "sales_planner",
+                "display_name": "跟进策略 Agent",
+                "skills": ["SKILL_103"],
+                "desc": "时间线、触达方式、关键话术",
+            },
+            {
+                "role": "verification",
+                "display_name": "Verification Agent",
+                "skills": ["SKILL_007"],
+                "desc": "独立检查策略可执行性",
+            },
+        ],
+        "success_rate": 0.78,
+        "usage_count": 0,
+        "desc": "销售线索四角色：画像 → 评估 → 策略 → 验收",
+    },
+    # 招聘流程：筛简历 → 出面试题 → Offer 评估 → 验收
+    {
+        "blueprint_id": "BP_RECRUIT_V1",
+        "scene_type": "招聘流程",
+        "team_composition": [
+            {
+                "role": "resume_screener",
+                "display_name": "简历筛选 Agent",
+                "skills": ["SKILL_201"],
+                "desc": "JD vs 简历打分",
+            },
+            {
+                "role": "interview_designer",
+                "display_name": "面试题 Agent",
+                "skills": ["SKILL_202"],
+                "desc": "针对性面试题",
+            },
+            {
+                "role": "offer_advisor",
+                "display_name": "Offer 评估 Agent",
+                "skills": ["SKILL_203"],
+                "desc": "薪酬带宽 + 谈判建议",
+            },
+            {
+                "role": "verification",
+                "display_name": "Verification Agent",
+                "skills": ["SKILL_007"],
+                "desc": "独立验收",
+            },
+        ],
+        "success_rate": 0.74,
+        "usage_count": 0,
+        "desc": "招聘四角色：筛简历 → 面试题 → Offer → 验收",
+    },
+    # 采购审批：需求 → 比价 → 合规 → 验收
+    {
+        "blueprint_id": "BP_PROCURE_V1",
+        "scene_type": "采购审批",
+        "team_composition": [
+            {
+                "role": "requirement_analyst",
+                "display_name": "采购需求 Agent",
+                "skills": ["SKILL_301"],
+                "desc": "梳理需求与必要性",
+            },
+            {
+                "role": "vendor_comparator",
+                "display_name": "供应商比价 Agent",
+                "skills": ["SKILL_302"],
+                "desc": "横向比价并推荐",
+            },
+            {
+                "role": "compliance_checker",
+                "display_name": "合规校验 Agent",
+                "skills": ["SKILL_303", "SKILL_005"],
+                "desc": "对照规章 + 飞书审批卡片",
+            },
+            {
+                "role": "verification",
+                "display_name": "Verification Agent",
+                "skills": ["SKILL_007"],
+                "desc": "独立验收",
+            },
+        ],
+        "success_rate": 0.81,
+        "usage_count": 0,
+        "desc": "采购审批四角色：需求 → 比价 → 合规 → 验收",
+    },
 ]

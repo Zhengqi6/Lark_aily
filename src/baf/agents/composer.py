@@ -52,6 +52,9 @@ class AgentComposerAgent(BaseAgent):
                 bp["_id"],
                 {"usage_count": int(bp.get("usage_count", 0) or 0) + 1},
             )
+            # remember which blueprint we used so the orchestrator can update its success_rate
+            ctx.blackboard["blueprint_id"] = bp.get("blueprint_id")
+            ctx.blackboard["blueprint_record_id"] = bp["_id"]
             return {
                 "source": "blueprint",
                 "blueprint_id": bp.get("blueprint_id"),
@@ -80,10 +83,11 @@ class AgentComposerAgent(BaseAgent):
 
         # persist as a new blueprint for future reuse
         if team:
-            self.storage.create_record(
+            new_bp_id = f"BP_{ctx.scene_type}_{ctx.case_id[:8]}"
+            rec_id = self.storage.create_record(
                 TableName.AGENT_BLUEPRINTS,
                 {
-                    "blueprint_id": f"BP_{ctx.scene_type}_{ctx.case_id[:8]}",
+                    "blueprint_id": new_bp_id,
                     "scene_type": ctx.scene_type,
                     "team_composition": team,
                     "success_rate": 0.0,   # updated after case closes
@@ -91,6 +95,8 @@ class AgentComposerAgent(BaseAgent):
                     "desc": str(data.get("reasoning", ""))[:200],
                 },
             )
+            ctx.blackboard["blueprint_id"] = new_bp_id
+            ctx.blackboard["blueprint_record_id"] = rec_id
 
         return {
             "source": "llm",
