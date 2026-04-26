@@ -1,0 +1,106 @@
+<svg width="1360" viewBox="0 0 680 760" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <style>
+      .t  { font-size: 14px; font-weight: 400; }
+      .ts { font-size: 12px; font-weight: 400; }
+      .th { font-size: 14px; font-weight: 500; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="680" height="760" fill="#FFFFFF"/>
+
+  <text x="40" y="32" class="th" fill="#2C2C2A">Multi-agent network on lark bitable</text>
+  <text x="40" y="50" class="ts" fill="#444441">六层流水线 + 两条横切，每层一个论文锚点</text>
+
+  <!-- L0 gray -->
+  <rect x="40" y="70" width="600" height="56" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+  <text x="56" y="92" class="th" fill="#2C2C2A">L0 飞书底座</text>
+  <text x="56" y="110" class="ts" fill="#444441">Bitable 5 张表 · 审批卡片 · MCP open api</text>
+  <text x="624" y="100" class="ts" text-anchor="end" fill="#444441">真相之源</text>
+
+  <!-- L1 purple -->
+  <rect x="40" y="140" width="600" height="56" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text x="56" y="162" class="th" fill="#3C3489">L1 感知与意图</text>
+  <text x="56" y="180" class="ts" fill="#534AB7">scene router + goal decomposer → IntentSpec</text>
+  <text x="624" y="170" class="ts" text-anchor="end" fill="#534AB7">DyLAN stage-1</text>
+
+  <!-- L2 purple -->
+  <rect x="40" y="210" width="600" height="76" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text x="56" y="232" class="th" fill="#3C3489">L2 编组与规划</text>
+  <text x="56" y="250" class="ts" fill="#534AB7">tool rag 召回 → blueprint 命中 → aflow mcts 搜索</text>
+  <text x="56" y="268" class="ts" fill="#534AB7">输出 agent graph：节点=角色，边=消息通道</text>
+  <text x="624" y="240" class="ts" text-anchor="end" fill="#534AB7">AFlow + DyLAN</text>
+
+  <!-- L3 teal -->
+  <rect x="40" y="300" width="600" height="86" rx="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="56" y="322" class="th" fill="#085041">L3 执行层</text>
+  <text x="56" y="340" class="ts" fill="#0F6E56">tick 调度，依赖图并行；全部走 mcp.call(skill, args)</text>
+  <rect x="56"  y="350" width="120" height="28" rx="4" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="116" y="367" class="t" text-anchor="middle" dominant-baseline="central" fill="#085041">incident cmd</text>
+  <rect x="184" y="350" width="120" height="28" rx="4" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="244" y="367" class="t" text-anchor="middle" dominant-baseline="central" fill="#085041">root cause</text>
+  <rect x="312" y="350" width="120" height="28" rx="4" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="372" y="367" class="t" text-anchor="middle" dominant-baseline="central" fill="#085041">fix agent</text>
+  <rect x="440" y="350" width="120" height="28" rx="4" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="500" y="367" class="t" text-anchor="middle" dominant-baseline="central" fill="#085041">domain agent</text>
+  <text x="624" y="367" class="ts" text-anchor="end" fill="#0F6E56">MetaGPT</text>
+
+  <!-- L4 coral -->
+  <rect x="40" y="400" width="600" height="76" rx="6" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+  <text x="56" y="422" class="th" fill="#712B13">L4 验证与反思</text>
+  <text x="56" y="440" class="ts" fill="#993C1D">三角色法庭：verifier + skeptic + domain expert</text>
+  <text x="56" y="458" class="ts" fill="#993C1D">不通过 → 回 L3 重跑；通过 → 进 L5</text>
+  <text x="624" y="430" class="ts" text-anchor="end" fill="#993C1D">MAR</text>
+
+  <!-- L5 pink -->
+  <rect x="40" y="490" width="600" height="86" rx="6" fill="#FBEAF0" stroke="#993556" stroke-width="0.5"/>
+  <text x="56" y="512" class="th" fill="#72243E">L5 记忆与演化</text>
+  <text x="56" y="530" class="ts" fill="#993556">memory stream · skill library · blueprint mcts 树</text>
+  <text x="56" y="548" class="ts" fill="#993556">课程学习自动发现新场景，回灌 L2</text>
+  <text x="624" y="520" class="ts" text-anchor="end" fill="#993556">Voyager + GenAgents</text>
+
+  <!-- skill hub amber -->
+  <rect x="40" y="600" width="290" height="80" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text x="56" y="622" class="th" fill="#633806">横切 skill hub</text>
+  <text x="56" y="640" class="ts" fill="#854F0B">vector index + mcp adapter</text>
+  <text x="56" y="658" class="ts" fill="#854F0B">policy engine 管权限/风险/速率</text>
+  <text x="56" y="676" class="ts" fill="#854F0B">论文锚：tool rag + mcp</text>
+
+  <!-- observability blue -->
+  <rect x="350" y="600" width="290" height="80" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="366" y="622" class="th" fill="#0C447C">横切 observability</text>
+  <text x="366" y="640" class="ts" fill="#185FA5">agent runs trace 树 + 甘特视图</text>
+  <text x="366" y="658" class="ts" fill="#185FA5">pass@k 可靠性与单位成本</text>
+  <text x="366" y="676" class="ts" fill="#185FA5">论文锚：MAESTRO</text>
+
+  <!-- main flow arrows -->
+  <line x1="340" y1="126" x2="340" y2="138" stroke="#5F5E5A" stroke-width="0.5" marker-end="url(#arrow)"/>
+  <line x1="340" y1="196" x2="340" y2="208" stroke="#5F5E5A" stroke-width="0.5" marker-end="url(#arrow)"/>
+  <line x1="340" y1="286" x2="340" y2="298" stroke="#5F5E5A" stroke-width="0.5" marker-end="url(#arrow)"/>
+  <line x1="340" y1="386" x2="340" y2="398" stroke="#5F5E5A" stroke-width="0.5" marker-end="url(#arrow)"/>
+  <line x1="340" y1="476" x2="340" y2="488" stroke="#5F5E5A" stroke-width="0.5" marker-end="url(#arrow)"/>
+
+  <!-- evolution feedback (green dashed) -->
+  <path d="M40 533 Q20 533 20 415 Q20 250 38 250" fill="none" stroke="#3B6D11" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+  <text x="22" y="385" class="ts" fill="#3B6D11" text-anchor="middle" transform="rotate(-90 22 385)">课程学习回灌</text>
+
+  <!-- failure loop (red dashed) -->
+  <path d="M640 438 Q662 438 662 360 Q662 320 642 320" fill="none" stroke="#A32D2D" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+  <text x="668" y="385" class="ts" fill="#A32D2D" text-anchor="middle" transform="rotate(90 668 385)">不通过则重跑</text>
+
+  <!-- cross-cutting dotted lines -->
+  <line x1="185" y1="600" x2="185" y2="386" stroke="#854F0B" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <line x1="495" y1="600" x2="495" y2="386" stroke="#185FA5" stroke-width="0.5" stroke-dasharray="2 3"/>
+
+  <!-- legend -->
+  <line x1="40" y1="710" x2="60" y2="710" stroke="#5F5E5A" stroke-width="0.5" marker-end="url(#arrow)"/>
+  <text x="68" y="714" class="ts" fill="#444441">主流</text>
+  <line x1="120" y1="710" x2="140" y2="710" stroke="#3B6D11" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+  <text x="148" y="714" class="ts" fill="#444441">演化反馈</text>
+  <line x1="220" y1="710" x2="240" y2="710" stroke="#A32D2D" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+  <text x="248" y="714" class="ts" fill="#444441">失败回环</text>
+  <line x1="320" y1="710" x2="340" y2="710" stroke="#854F0B" stroke-width="0.5" stroke-dasharray="2 3"/>
+  <text x="348" y="714" class="ts" fill="#444441">横切调用</text>
+</svg>
