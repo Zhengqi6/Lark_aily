@@ -7,7 +7,7 @@ name = "bitable-agent-fabric"
 version = "0.1.0"
 description = "Scene-adaptive multi-agent fabric on top of Feishu Bitable"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
     "openai>=1.40.0",
     "httpx>=0.27.0",

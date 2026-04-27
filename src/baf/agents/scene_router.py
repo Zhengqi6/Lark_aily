@@ -81,6 +81,11 @@ class SceneRouterAgent(BaseAgent):
     system_prompt = SYSTEM_PROMPT
     temperature = 0.0
     json_mode = True
+    # 元数据：纯分类、只读，绝对安全可并行。
+    is_concurrency_safe = True
+    is_destructive = False
+    risk_tier = "low"
+    search_hint = "classify task into business scene"
 
     def _do(self, ctx: RunContext) -> dict[str, Any]:
         messages = [{"role": "system", "content": self.system_prompt}]

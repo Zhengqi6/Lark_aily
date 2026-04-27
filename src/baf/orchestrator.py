@@ -33,6 +33,8 @@ from .agents.root_cause import RootCauseAgent
 from .agents.scene_router import SceneRouterAgent
 from .agents.skill_retriever import SkillRetrieverAgent
 from .agents.verification import VerificationAgent
+from .evolution.distill import Evolution
+from .hooks.approvals import ApprovalRegistry
 from .llm.client import LLMClient
 from .storage.backend import StorageBackend, TableName
 
@@ -73,9 +75,18 @@ class OrchestrationResult:
 
 
 class Orchestrator:
-    def __init__(self, llm: LLMClient, storage: StorageBackend):
+    def __init__(
+        self,
+        llm: LLMClient,
+        storage: StorageBackend,
+        *,
+        approval_registry: ApprovalRegistry | None = None,
+        evolution: Evolution | None = None,
+    ):
         self.llm = llm
         self.storage = storage
+        self.approvals = approval_registry or ApprovalRegistry(storage)
+        self.evolution = evolution or Evolution(storage)
 
     # ---- entry points ----------------------------------------------
     def submit_case(self, title: str, description: str) -> OrchestrationResult:
@@ -182,16 +193,20 @@ class Orchestrator:
             },
         )
 
-        # 6) if passed, promote to SOP
-        if passed:
-            sop_id = self._sink_sop(ctx)
-            if sop_id:
+        # 6) Sprint C: delegate sinking + EWMA to Evolution
+        try:
+            distill = self.evolution.distill(ctx, passed=passed)
+            if passed and distill.sop_id:
                 self.storage.update_record(
-                    TableName.CASES, record_id, {"sop_ref": sop_id}
+                    TableName.CASES, record_id, {"sop_ref": distill.sop_id}
                 )
-
-        # 7) update the blueprint's running success_rate (EWMA)
-        self._update_blueprint_success(ctx, passed)
+                console.print(f"[green]📌  SOP 已沉淀:[/green] {distill.sop_id}")
+                if distill.new_skills:
+                    console.print(
+                        f"[cyan]✨ 自蒸馏技能:[/cyan] {', '.join(distill.new_skills)}"
+                    )
+        except Exception as e:
+            console.print(f"[yellow]Evolution 失败 (非致命): {e}[/yellow]")
 
         console.rule(f"[bold green]Case {case_id} → {'PASSED' if passed else 'FAILED'}")
         return OrchestrationResult(
@@ -238,49 +253,8 @@ class Orchestrator:
         t.add_row(agent.display_name, _pretty(output))
         console.print(t)
 
-    def _update_blueprint_success(self, ctx: RunContext, passed: bool) -> None:
-        """Roll the blueprint's success_rate forward (EWMA, alpha=0.3)."""
-        bp_record_id = ctx.blackboard.get("blueprint_record_id")
-        if not bp_record_id:
-            return
-        try:
-            bp = self.storage.get_record(TableName.AGENT_BLUEPRINTS, bp_record_id)
-            if not bp:
-                return
-            prev = float(bp.get("success_rate") or 0.0)
-            sample = 1.0 if passed else 0.0
-            alpha = 0.3
-            new_rate = round(alpha * sample + (1 - alpha) * prev, 3)
-            self.storage.update_record(
-                TableName.AGENT_BLUEPRINTS,
-                bp_record_id,
-                {"success_rate": new_rate, "last_used_at": time.time()},
-            )
-        except Exception as e:
-            console.print(f"[yellow]blueprint success_rate 更新失败: {e}[/yellow]")
-
-    def _sink_sop(self, ctx: RunContext) -> str | None:
-        """Promote a successful case into an SOP row for future reuse."""
-        try:
-            steps = ctx.findings.get("fix_steps") or []
-            sop_id = f"SOP_{ctx.scene_type}_{ctx.case_id[:8]}"
-            rec = self.storage.create_record(
-                TableName.MEMORY_SOP,
-                {
-                    "sop_id": sop_id,
-                    "scene_type": ctx.scene_type,
-                    "title": (ctx.findings.get("root_cause") or "")[:60] or f"{ctx.scene_type} SOP",
-                    "trigger_condition": ctx.description[:200],
-                    "steps": steps,
-                    "source_case_id": ctx.case_id,
-                    "confidence": ctx.findings.get("rc_confidence", 0.0),
-                },
-            )
-            console.print(f"[green]📌  SOP 已沉淀:[/green] {sop_id}")
-            return rec
-        except Exception as e:
-            console.print(f"[yellow]SOP 沉淀失败: {e}[/yellow]")
-            return None
+    # SOP sinking + EWMA are now handled by `Evolution.distill()`.
+    # See `src/baf/evolution/distill.py`.
 
 
 def _pretty(obj: Any, max_len: int = 300) -> str:

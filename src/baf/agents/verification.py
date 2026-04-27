@@ -16,6 +16,10 @@ class VerificationAgent(BaseAgent):
     display_name = "Verification Agent"
     temperature = 0.1
     json_mode = True
+    is_concurrency_safe = True
+    is_destructive = False
+    risk_tier = "low"
+    search_hint = "independently verify task acceptance criteria"
     system_prompt = """你是 Verification Agent —— 独立的结果验证器。
 严格按照【验收标准】判断任务是否完成，不要被过程论述带偏。
 

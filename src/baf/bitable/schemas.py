@@ -105,6 +105,13 @@ SCHEMAS: dict[TableName, list[FieldDef]] = {
         FieldDef("token_usage", 2),
         FieldDef("error_msg", 1),
         FieldDef("started_at", 5),
+        # Sprint A: trace tree + resume checkpoints
+        FieldDef("tick", 2),
+        FieldDef("parent_run_id", 1),
+        FieldDef("boundary_marker", 1),
+        FieldDef("is_concurrency_safe", 7),
+        FieldDef("is_destructive", 7),
+        FieldDef("agent_risk_tier", 1),
     ],
     TableName.MEMORY_SOP: [
         FieldDef("sop_id", 1),
@@ -114,6 +121,22 @@ SCHEMAS: dict[TableName, list[FieldDef]] = {
         FieldDef("steps", 1),               # JSON-stringified
         FieldDef("source_case_id", 1),
         FieldDef("confidence", 2),
+        FieldDef("narrative", 1),
+        FieldDef("key_decisions", 1),
+    ],
+    TableName.PENDING_APPROVALS: [
+        FieldDef("card_id", 1),
+        FieldDef("case_id", 1),
+        FieldDef("agent_run_id", 1),
+        FieldDef(
+            "status", 3,
+            {"options": [{"name": s} for s in ["pending", "approved", "rejected", "timeout"]]},
+        ),
+        FieldDef("payload", 1),         # JSON-stringified
+        FieldDef("decision_note", 1),
+        FieldDef("requested_at", 5),
+        FieldDef("expires_at", 5),
+        FieldDef("decided_at", 5),
     ],
 }
 
@@ -125,4 +148,5 @@ TABLE_DISPLAY_NAMES: dict[TableName, str] = {
     TableName.AGENT_BLUEPRINTS: "Agent Blueprints · 模板",
     TableName.AGENT_RUNS: "Agent Runs · 执行记录",
     TableName.MEMORY_SOP: "Memory/SOP · 沉淀",
+    TableName.PENDING_APPROVALS: "Pending Approvals · 待审批",
 }

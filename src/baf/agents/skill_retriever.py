@@ -16,6 +16,10 @@ class SkillRetrieverAgent(BaseAgent):
     display_name = "Skill Retriever"
     temperature = 0.0
     json_mode = True
+    is_concurrency_safe = True
+    is_destructive = False
+    risk_tier = "low"
+    search_hint = "retrieve top-k skills for the scene"
     system_prompt = """你是 Skill Retriever。给定【场景】和【任务描述】，从候选技能清单中挑出最相关的技能，
 按相关度降序返回 skill_id 列表，总数控制在 5-10 个。
 

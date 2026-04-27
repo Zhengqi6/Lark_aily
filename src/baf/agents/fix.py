@@ -16,6 +16,11 @@ class FixAgent(BaseAgent):
     display_name = "Fix Agent"
     temperature = 0.2
     json_mode = True
+    # Fix runs commands that change live state — destructive, must go through approval.
+    is_concurrency_safe = False
+    is_destructive = True
+    risk_tier = "high"
+    search_hint = "design repair plan with rollback for incident"
     system_prompt = """你是 Fix Agent —— 故障修复方案设计师。
 拿到根因后，给出具体修复方案。
 

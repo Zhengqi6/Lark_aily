@@ -39,6 +39,11 @@ class RootCauseAgent(BaseAgent):
     display_name = "Root Cause Agent"
     temperature = 0.15
     json_mode = True
+    # Read-only: tails logs / pulls metrics. Safe to run in parallel with Triage.
+    is_concurrency_safe = True
+    is_destructive = False
+    risk_tier = "mid"
+    search_hint = "root cause analysis from logs and metrics"
     system_prompt = """你是 Root Cause Agent —— 根因分析专家。
 拿到故障现象、日志片段、监控指标后，推导最可能的根因。
 

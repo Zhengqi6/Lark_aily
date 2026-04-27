@@ -18,6 +18,10 @@ class AgentComposerAgent(BaseAgent):
     display_name = "Agent Composer"
     temperature = 0.2
     json_mode = True
+    is_concurrency_safe = True
+    is_destructive = False
+    risk_tier = "low"
+    search_hint = "design agent team for case"
     system_prompt = """你是 Agent Composer —— 负责给定场景和可用技能，设计一支 agent 团队。
 每个 agent 必须：
   - 有明确的 role (英文 snake_case) 和 display_name (中文)

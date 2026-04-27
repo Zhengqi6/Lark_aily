@@ -48,17 +48,34 @@
 | **Agent Runs** | 每一次 Agent 调用的时间线（虚拟组织的工作可视化） |
 | **Memory / SOP** | 成功处置沉淀为可复用 SOP |
 
-## 7 个内置 Agent
+## 7 个内置 Agent + Court
 
 ```
-Scene Router     → 分类任务到 6 个场景
-Skill Retriever  → 从技能库挑 5-10 个候选
-Agent Composer   → 复用 Blueprint 或 LLM 设计新团队
-Incident Commander → 故障分级 + 调度
-Root Cause Agent → 日志+监控 → 推根因
-Fix Agent        → 修复方案 + 回滚 + 审批卡片
-Verification Agent → 独立验收
+Scene Router       → 分类任务到 6 个场景            (concurrency-safe, low risk)
+Skill Retriever    → 从技能库挑 5-10 个候选         (concurrency-safe, low risk)
+Agent Composer     → 复用 Blueprint 或 LLM 设计新团队 (concurrency-safe, low risk)
+Incident Commander → 故障分级 + 调度                (serial, mid risk)
+Root Cause Agent   → 日志+监控 → 推根因             (concurrency-safe, mid risk)
+Fix Agent          → 修复方案 + 回滚 + 审批卡片     (DESTRUCTIVE → approval)
+Verification Agent → 独立验收（低风险快速通道）     (concurrency-safe, low risk)
+Court Agent        → Verifier+Skeptic+Domain Expert (高风险 3 角色法庭)
 ```
+
+每个 Agent 都带 `is_concurrency_safe / is_destructive / risk_tier / search_hint`
+四个元数据，Composer 据此决定哪些 Agent 同 tick 并行、哪些必须走审批、
+哪些要进 Court。这套元数据接口直接抄 Claude Code `src/Tool.ts`。
+
+## Sprint A/B/C 进阶能力（DMSAS_Design.md 落地）
+
+| 能力 | 实现位置 | 何时启用 |
+|---|---|---|
+| Async generator + tick 调度 | `orchestrator_stream.py` | `baf run-stream` |
+| Resume from checkpoint | `StreamOrchestrator.run_case_stream` + `storage.get_max_tick` | `baf resume <CASE>` |
+| 三角色法庭（Court） | `agents/court.py` | `risk_tier ∈ {high, critical}`，故障场景默认进 Court |
+| 异步审批（飞书卡片） | `hooks/approvals.py` (`ApprovalRegistry`) | Fix Agent (`is_destructive=True`) 自动触发 |
+| 经验自蒸馏（SOP + 新技能 + EWMA） | `evolution/distill.py` | Court 通过后自动 |
+| AFlow-MCTS 多路径采样 | `evolution/aflow_mcts.py` | Composer 第三档（高风险时调用） |
+| Skill Hub（向量召回 + MCP + 政策） | `skills/hub.py` | 任何 Agent 内显式 `hub.invoke(skill_id, args)` |
 
 ## 快速上手
 
@@ -75,14 +92,20 @@ cp .env.example .env   # 填上 LLM_API_KEY
 ### 2. 离线 Demo（不需要飞书凭证）
 
 ```bash
-baf init-tables --mock   # 在 ~/.baf/mock/ 下创建 5 张 JSON "表"
+baf init-tables --mock   # 在 ~/.baf/mock/ 下创建 6 张 JSON "表"
 baf seed --mock          # 种入内置技能库（19 条）+ 模板（4 条，覆盖 4 个场景）
 baf run-demo --mock      # 跑一条默认的 P1 故障，控制台实时输出每个 Agent 的工作
 baf demo-all --mock      # 一次跑完 4 个场景：故障 / 销售 / 招聘 / 采购
-baf tables --mock        # 一览 5 张表
+baf tables --mock        # 一览 6 张表
 baf stats --mock         # 场景 / 状态 / Blueprint 使用率聚合
 baf trace <CASE_ID> --mock          # 单 case 的完整 Agent 时间线
 baf export-report --mock -o out.md  # 导出 Markdown 报告（评委/分享友好）
+
+# Sprint A/B/C 高阶通路：
+baf run-stream "Redis 主节点宕机..." --mock   # async + Court + 自动审批
+baf resume CASE_xxxxx --mock                  # 从最大 tick + 1 续跑
+baf approve <card_id> --decision approved --mock  # 手动通过审批
+baf court-test "数据库雪崩" --mock            # 单独跑三角色法庭
 ```
 
 期望看到的控制台输出：
@@ -135,38 +158,55 @@ baf run-demo             # 打开多维表格页面能看到 Cases/AgentRuns 实
 
 ```bash
 pytest -q
-# 7 passed —— 含 Scene Router 20 样本回归（100%）+ MockBackend CRUD + Orchestrator 端到端（FakeLLM 离线）
+# 17 passed, 1 skipped —— 完全离线（除 Scene Router 真 LLM 测试）
 ```
 
 | 测试 | 校验内容 |
 |---|---|
 | `test_scene_router.py` | 20 fixture 场景识别准确率（PRD §10.1 要求 ≥85%，实测 100%）|
 | `test_mock_backend.py` | StorageBackend CRUD、列表过滤（含多选字段）、seed 幂等 |
-| `test_orchestrator_e2e.py` | 用 FakeLLM 跑完整流水线，校验 Blueprint EWMA、SOP 沉淀、Agent Runs 审计 |
+| `test_orchestrator_e2e.py` | FakeLLM 跑完整流水线，校验 Blueprint EWMA、SOP 沉淀、Agent Runs 审计 |
+| `test_court_and_evolution.py` | Court 三角色多数表决 / 快速通道、Evolution 蒸馏、ApprovalRegistry round-trip、AflowMCTS 评分、SkillHub 检索 |
+| `test_orchestrator_stream.py` | Async stream 全流水线（含审批与 Court）+ tick 续跑 |
 
 ## 目录
 
 ```
 bitable-agent-fabric/
 ├── src/baf/
-│   ├── cli.py                  # typer CLI
-│   ├── config.py               # ~/.baf/ 配置 & 凭证
-│   ├── llm/client.py           # OpenAI-compatible 客户端
+│   ├── cli.py                       # typer CLI（含 run-stream/resume/approve/court-test）
+│   ├── config.py                    # ~/.baf/ 配置 & 凭证
+│   ├── llm/client.py                # OpenAI-compatible 客户端
 │   ├── bitable/
-│   │   ├── auth.py             # Feishu OAuth 浏览器流程
-│   │   ├── client.py           # Bitable REST 封装
-│   │   └── schemas.py          # 5 张表字段定义
+│   │   ├── auth.py                  # Feishu OAuth 浏览器流程
+│   │   ├── client.py                # Bitable REST 封装
+│   │   └── schemas.py               # 6 张表字段定义（PendingApprovals 新增）
 │   ├── storage/
-│   │   ├── backend.py          # StorageBackend 抽象接口
-│   │   ├── mock_backend.py     # 本地 JSON
-│   │   └── bitable_backend.py  # 飞书
-│   ├── agents/                 # 7 个 Agent 实现
-│   ├── skills/builtin.py       # 10 条种子技能 + 1 个团队模板
-│   ├── orchestrator.py         # 主流程
-│   └── demo/                   # Demo 数据 & 种子逻辑
-├── tests/
-│   ├── test_scene_router.py
-│   └── fixtures/cases.jsonl    # 20 条样本
+│   │   ├── backend.py               # StorageBackend 抽象（+ get_max_tick / vector_search）
+│   │   ├── mock_backend.py          # 本地 JSON
+│   │   └── bitable_backend.py       # 飞书
+│   ├── agents/                      # Scene/Skill/Composer/IC/RC/Fix/Verification/Generic
+│   │   ├── base.py                  # +元数据 (concurrency_safe / destructive / risk_tier / search_hint)
+│   │   └── court.py                 # 三角色法庭：Verifier / Skeptic / DomainExpert
+│   ├── skills/
+│   │   ├── builtin.py               # 19 条种子技能 + 4 个 Blueprint
+│   │   └── hub.py                   # Skill Hub：retrieve / invoke / 政策
+│   ├── evolution/
+│   │   ├── distill.py               # SOP + 自蒸馏新技能 + Blueprint EWMA
+│   │   └── aflow_mcts.py            # AFlow MCTS 评分多路径采样
+│   ├── hooks/approvals.py           # 异步审批 Hook（飞书卡片 + 超时）
+│   ├── orchestrator.py              # 同步主流程（保持向后兼容）
+│   ├── orchestrator_stream.py       # Async generator + tick + Court + 审批
+│   └── demo/                        # Demo 数据 & 种子逻辑
+├── tests/                           # 17 个用例（5 个测试文件）
+│   ├── test_mock_backend.py
+│   ├── test_scene_router.py         # 真 LLM 回归（自动 skip 当无 key）
+│   ├── test_orchestrator_e2e.py     # 同步流水线
+│   ├── test_orchestrator_stream.py  # 异步流水线 + 续跑
+│   ├── test_court_and_evolution.py  # Court / Evolution / Approvals / SkillHub
+│   └── fixtures/cases.jsonl         # 20 条样本
+├── DMSAS_Design.md                  # 设计文档（论文锚点 + 工程模式 + 代码骨架）
+├── architecture.png                 # 架构图
 ├── pyproject.toml
 └── .env.example
 ```

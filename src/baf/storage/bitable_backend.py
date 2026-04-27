@@ -24,7 +24,10 @@ from .backend import StorageBackend, TableName
 # Fields that are legitimately lists in Bitable (multi-select).
 _MULTI_SELECT_FIELDS = {"applicable_scenes"}
 # Fields stored as int unix-millis.
-_DATETIME_FIELDS = {"created_at", "closed_at", "started_at"}
+_DATETIME_FIELDS = {
+    "created_at", "closed_at", "started_at",
+    "requested_at", "expires_at", "decided_at",
+}
 
 
 def _to_bitable(fields: dict[str, Any]) -> dict[str, Any]:

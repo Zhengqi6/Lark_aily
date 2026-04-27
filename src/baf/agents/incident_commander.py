@@ -11,6 +11,10 @@ class IncidentCommanderAgent(BaseAgent):
     display_name = "Incident Commander"
     temperature = 0.1
     json_mode = True
+    is_concurrency_safe = False   # writes severity + comms channel — keep serial
+    is_destructive = False        # only sends notifications via SKILL_004 (low-risk)
+    risk_tier = "mid"
+    search_hint = "incident severity grading and oncall comms"
     system_prompt = """你是 Incident Commander —— 一线故障指挥官。
 给定故障描述，输出：
   - severity: P0 (全站不可用/严重资损) / P1 (核心链路严重降级) / P2 (非核心功能问题) / P3 (轻微)
